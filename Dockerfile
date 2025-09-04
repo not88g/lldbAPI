@@ -6,8 +6,7 @@ WORKDIR /app
 
 # 3. Копируем csproj и восстанавливаем зависимости
 COPY lldbAPI.csproj ./
-RUN dotnet nuget add source https://api.nuget.org/v3/index.json -n nuget.org
-RUN dotnet restore lldbAPI.csproj
+RUN dotnet restore
 
 # 4. Копируем весь проект
 COPY . ./
