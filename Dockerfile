@@ -1,22 +1,27 @@
-# Используем официальный образ .NET SDK для сборки
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+# 1. Берём официальный .NET SDK образ
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+# 2. Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем csproj и восстанавливаем зависимости
-COPY *.csproj ./
-RUN dotnet restore
+# 3. Копируем csproj и восстанавливаем зависимости
+COPY lldbAPI.csproj ./
+RUN dotnet nuget add source https://api.nuget.org/v3/index.json -n nuget.org
+RUN dotnet restore lldbAPI.csproj
 
-# Копируем все файлы и билдим релиз
+# 4. Копируем весь проект
 COPY . ./
-RUN dotnet publish -c Release -o out
 
-# Используем runtime для запуска
-FROM mcr.microsoft.com/dotnet/aspnet:7.0
+# 5. Сборка релиза
+RUN dotnet publish lldbAPI.csproj -c Release -o /app/publish
+
+# 6. Создаём runtime образ
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=build /app/out .
+COPY --from=build /app/publish .
 
-# Указываем порт, который слушает Render
-EXPOSE 10000
+# 7. Открываем порт
+EXPOSE 5000
 
-# Запуск приложения
+# 8. Команда запуска
 ENTRYPOINT ["dotnet", "lldbAPI.dll"]
