@@ -1,46 +1,32 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using lldbAPI.Data;
-using lldbAPI.Models;
 
-namespace lldbAPI.Controllers;
-
-[ApiController]
-[Route("api/[controller]")]
-public class MessagesController : ControllerBase
+namespace lldbAPI.Controllers
 {
-    private readonly AppDbContext _context;
-
-    public MessagesController(AppDbContext context)
+    [ApiController]
+    [Route("api/[controller]")]
+    public class MessagesController : ControllerBase
     {
-        _context = context;
-    }
+        private readonly AppDbContext _context;
 
-    // получить все сообщения
-    [HttpGet]
-    public IActionResult GetMessages()
-    {
-        var messages = _context.Messages
-            .OrderByDescending(m => m.Timestamp)
-            .Take(50) // последние 50 сообщений
-            .ToList();
-
-        return Ok(messages);
-    }
-
-    // отправить сообщение
-    [HttpPost]
-    public async Task<IActionResult> SendMessage([FromBody] Message msgDto)
-    {
-        var message = new Message
+        public MessagesController(AppDbContext context)
         {
-            Sender = msgDto.Sender,
-            Content = msgDto.Content,
-            Timestamp = DateTime.UtcNow
-        };
+            _context = context;
+        }
 
-        _context.Messages.Add(message);
-        await _context.SaveChangesAsync();
+        [HttpGet]
+        public async Task<IEnumerable<Message>> GetAll()
+        {
+            return await _context.Messages.ToListAsync();
+        }
 
-        return Ok("Message sent");
+        [HttpPost]
+        public async Task<IActionResult> Send(Message message)
+        {
+            _context.Messages.Add(message);
+            await _context.SaveChangesAsync();
+            return Ok(message);
+        }
     }
 }

@@ -1,17 +1,22 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+# Используем SDK для сборки
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /app
 
-  <PropertyGroup>
-<TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+# Копируем проект
+COPY *.csproj ./
+RUN dotnet restore
 
-<ItemGroup>
-  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
-  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0" />
-  <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0" />
-  <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
-</ItemGroup>
+# Копируем весь код
+COPY . ./
+RUN dotnet publish -c Release -o out
 
+# Runtime образ
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /app
+COPY --from=build /app/out ./
 
-</Project>
+# Открываем порт
+EXPOSE 10000
+
+# Запуск приложения
+ENTRYPOINT ["dotnet", "lldbAPI.dll"]

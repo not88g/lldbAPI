@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using lldbAPI.Data;
 
 namespace lldbAPI.Controllers
@@ -7,39 +8,33 @@ namespace lldbAPI.Controllers
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
-        private readonly AppDbContext _db;
+        private readonly AppDbContext _context;
 
-        public UsersController(AppDbContext db)
+        public UsersController(AppDbContext context)
         {
-            _db = db;
+            _context = context;
+        }
+
+        [HttpGet]
+        public async Task<IEnumerable<User>> GetAll()
+        {
+            return await _context.Users.ToListAsync();
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] User user)
+        public async Task<IActionResult> Register(User user)
         {
-            if (string.IsNullOrEmpty(user.Username) || string.IsNullOrEmpty(user.Password))
-                return BadRequest("username and password required");
-
-            _db.Users.Add(user);
-            await _db.SaveChangesAsync();
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
             return Ok(user);
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] User user)
+        public async Task<IActionResult> Login(User login)
         {
-            var found = await _db.Users
-                .FirstOrDefaultAsync(u => u.Username == user.Username && u.Password == user.Password);
-
-            if (found == null) return Unauthorized();
-            return Ok(found);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            var users = await _db.Users.ToListAsync();
-            return Ok(users);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == login.Username && u.Password == login.Password);
+            if (user == null) return Unauthorized();
+            return Ok(user);
         }
     }
 }
