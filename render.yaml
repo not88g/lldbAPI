@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: lldbapi
+    env: dotnet
+    plan: free
+    buildCommand: dotnet publish -c Release -o out
+    startCommand: dotnet out/lldbAPI.dll
+    envVars:
+      - key: DOTNET_RUNNING_IN_CONTAINER
+        value: true
+      - key: DOTNET_USE_POLLING_FILE_WATCHER
+        value: true
+      - key: DOTNET_HOST_PATH
+        value: /usr/share/dotnet/dotnet
+      - key: DOTNET_VERSION
+        value: 8.0.0
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: CONNECTIONSTRINGS__DEFAULTCONNECTION
+        value: "Host=dpg-d2s5c1mmcj7s73fslto0-a.oregon-postgres.render.com;Database=datalumiabaselink;Username=datalumiabaselink_user;Password=MGeBsOZdrxxTbT1sVDd1oXlKOfvI7qBI;SSL Mode=Require;Trust Server Certificate=true"
